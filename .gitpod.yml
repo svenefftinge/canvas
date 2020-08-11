@@ -1,0 +1,27 @@
+image:
+  file: .gitpod.Dockerfile
+
+tasks:
+  - init: |
+      cd /workspace
+      composer create-project --prefer-dist laravel/laravel blog
+      cd blog
+      touch database/database.sqlite
+      sed -i 's/DB_CONNECTION=mysql/DB_CONNECTION=sqlite/g' .env
+      composer require laravel/ui
+      php artisan ui vue --auth
+      php artisan migrate
+      composer-link ../canvas/
+      composer require cnvs/canvas @dev
+      php artisan canvas:install
+      php artisan storage:link
+      php artisan canvas:ui
+
+      # remove the existing assets from the Laravel app
+      rm -rf public/vendor/canvas/*
+
+      # go inside the empty directory and create a symlink
+      cd public/vendor/canvas
+      ln -s ../../../../canvas/public/* .
+      cd /workspace/blog
+    command: yarn run dev
